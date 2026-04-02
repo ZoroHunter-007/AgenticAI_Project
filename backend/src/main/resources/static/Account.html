@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auth | Agentic AI</title>
+    <link rel="stylesheet" href="auth.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="container" id="container">
+
+    <!-- REGISTER -->
+    <div class="form-container register-container">
+        <form id="registerForm" enctype="multipart/form-data">
+            <h2>Create Account 🚀</h2>
+
+            <input type="text" id="registerFullName" placeholder="Full Name" required>
+            <input type="email" id="registerEmail" placeholder="Email" required>
+
+            <div class="input-group password-group">
+                <input type="password" id="registerPassword" placeholder="Password" required>
+                <span class="toggle-password"
+                      onclick="togglePassword('registerPassword', this)">👁</span>
+            </div>
+            <input type="file" id="registerProfileImage" accept="image/*" required>
+
+
+			
+            <button type="submit">Register</button>
+            
+           <div class="divider">
+   				 <span>OR</span>
+		</div>
+
+			<a href="/oauth2/authorization/google" class="google-btn">
+   				 <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google">
+   				 Continue with Google
+			</a>
+        </form>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="form-container login-container">
+        <form id="loginForm">
+            <h2>Welcome Back 👋</h2>
+
+            <input type="email" id="loginEmail" placeholder="Email" required>
+
+            <div class="input-group password-group">
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <span class="toggle-password"
+                      onclick="togglePassword('loginPassword', this)">👁</span>
+            </div>
+
+            <button type="submit">Login</button>
+            
+            <div class="divider">
+   				 <span>OR</span>
+		</div>
+
+			<a href="/oauth2/authorization/google" class="google-btn">
+   				 <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google">
+   				 Sign with Google
+			</a>
+            
+        </form>
+    </div>
+
+    <!-- SLIDER PANEL -->
+    <div class="overlay-container">
+        <div class="overlay">
+            <div class="overlay-panel overlay-left">
+                <h2>Welcome Back!</h2>
+                <p>To keep connected with us please login</p>
+                <button class="ghost" id="login">Login</button>
+            </div>
+
+            <div class="overlay-panel overlay-right">
+                <h2>Hello, Friend!</h2>
+                <p>Enter your details and start journey with us</p>
+                <button class="ghost" id="register">Register</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// Slider logic
+const container = document.getElementById("container");
+
+document.getElementById("register").addEventListener("click", () => {
+    container.classList.add("right-panel-active");
+});
+
+document.getElementById("login").addEventListener("click", () => {
+    container.classList.remove("right-panel-active");
+});
+
+// 👁 Password Toggle
+function togglePassword(inputId, icon) {
+    const input = document.getElementById(inputId);
+
+    if (input.type === "password") {
+        input.type = "text";
+        icon.textContent = "🙈";
+    } else {
+        input.type = "password";
+        icon.textContent = "👁";
+    }
+}
+</script>
+
+<!-- External JS -->
+<script src="register.js"></script>
+<script src="login.js"></script>
+
+</body>
+</html>

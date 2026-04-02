@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Agentic AI</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="layout">
+
+    <!-- Sidebar -->
+    
+   <aside class="sidebar">
+    <h2>🤖 Agentic AI</h2>
+
+    <button id="newChatBtn" class="new-chat">+ New Chat</button>
+
+<div class="section-title">Your Chats</div>
+<div id="sidebarChats" class="chat-history"></div>
+    <div class="sidebar-profile">
+        <img id="profileImage"
+             class="profile-img"
+             alt="Profile"
+             referrerpolicy="no-referrer">
+        <h3>Welcome <span id="username"></span></h3>
+    </div>
+
+    <button id="logoutBtn" class="logout-btn">Logout</button>
+</aside>
+
+    <!-- Main Chat Area -->
+    <main class="chat-main">
+
+        <div id="chat-box" class="chat-box">
+            <!-- messages -->
+        </div>
+
+        <div class="chat-input">
+            <textarea id="userInput" placeholder="Message Agentic AI..."></textarea>
+            <button id="sendBtn" onclick="sendMessage()">➤</button>
+        </div>
+
+    </main>
+
+</div>
+
+<script>
+fetch("/api/auth/me", {
+    method: "GET",
+    credentials: "include"
+})
+.then(res => {
+    if (!res.ok) {
+        throw new Error("Not authenticated");
+    }
+    return res.json();
+})
+.then(data => {
+
+    console.log("User data:", data);
+
+    // Set username
+    document.getElementById("username").innerText = data.displayName || "User";
+
+    const img = document.getElementById("profileImage");
+
+    // Handle profile image safely
+    if (!data.profileImage) {
+        img.src = "/images/default.png";
+    } 
+    else if (data.profileImage.startsWith("http")) {
+        img.src = data.profileImage;
+    } 
+    else {
+        img.src = data.profileImage;
+    }
+
+})
+.catch(err => {
+    console.error("Error loading user:", err);
+});
+</script>
+
+<script src="script.js"></script>
+</body>
+</html>
