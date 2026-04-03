@@ -31,7 +31,7 @@ export const getMeApi = async () => {
   const res = await fetch(`${BASE_URL}/api/auth/me`, {
     method: 'GET',
     headers: getHeaders(),
-    credentials: 'include', // ✅ Sends the cookie to prove we are logged in
+    credentials: 'include', 
   });
   if (!res.ok) throw new Error('Failed to fetch user');
   return res.json();
@@ -40,10 +40,11 @@ export const getMeApi = async () => {
 export const registerApi = async (formData) => {
   const res = await fetch(`${BASE_URL}/api/auth/register`, {
     method: 'POST',
-    body: formData, 
+    credentials: 'include',
+    body: formData,
   });
   if (!res.ok) throw new Error((await res.json()).message || 'Registration failed');
-  return res.json();
+   return res.text();
 };
 
 export const googleLoginApi = () => {

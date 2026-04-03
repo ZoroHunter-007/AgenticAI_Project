@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,28 +27,25 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:8081"}, allowCredentials = "true")
+@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:8081","http://localhost"}, allowCredentials = "true")
 public class AuthController {
 
     private final UserService authService;
-    @PostMapping(
-            value = "/register",
-            consumes = "multipart/form-data"
-    )
+    
+    @PostMapping("/register")
     public ResponseEntity<?> register(
-            @ModelAttribute RegisterRequest request,
-            @RequestParam("profileImage") MultipartFile multipartFile
+        @RequestParam("displayName") String displayName,
+        @RequestParam("email") String email,
+        @RequestParam("password") String password,
+        @RequestParam(value = "profileImage", required = false) MultipartFile profileImage
     ) {
-
-        System.out.println("REGISTER CONTROLLER HIT");
-        System.out.println("Email: " + request.getEmail());
-        System.out.println("DisplayName: " + request.getDisplayName());
-
-        authService.register(request, multipartFile);
-
-        return ResponseEntity.ok(Map.of("message","Verification Mail Sent!"));
+        RegisterRequest request = new RegisterRequest();
+        request.setDisplayName(displayName);
+        request.setEmail(email);
+        request.setPassword(password);
+        authService.register(request, profileImage);
+        return ResponseEntity.ok(Map.of("message","Resgister Successfully"));
     }
-
 
     @PostMapping("/login")
     public ResponseEntity<?> login(

@@ -1,16 +1,14 @@
 package com.AgenticAi.AIProject.Gemini;
 
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import reactor.core.publisher.Mono;
-
 
 @Service
 public class GeminiClient {
@@ -32,80 +30,65 @@ public class GeminiClient {
 
     public Mono<String> generate(List<LLMMessage> messages) {
         return call(primaryModel, messages)
-            .onErrorResume(WebClientResponseException.class, ex -> {
-                System.out.println("Primary model failed: " + ex.getStatusCode());
-                System.out.println("Trying fallback model...");
-                // ✅ Try fallback instead of returning error!
-                return call(fallBackModel, messages)
-                    .onErrorResume(ex2 -> {
-                        System.out.println("Fallback also failed: " + ex2.getMessage());
-                        return Mono.just("⚠️ System is busy. Please try again in a moment.");
-                    });
-            })
-            .onErrorResume(ex -> {
-                System.out.println("Unexpected error: " + ex.getMessage());
-               
-                return call(fallBackModel, messages)
-                    .onErrorResume(ex2 -> Mono.just("⚠️ System is busy. Please try again in a moment."));
-            });
+                .onErrorResume(WebClientResponseException.class, ex -> {
+                    // 429 = Rate Limit, 400 = Bad Request (Retry with Fallback)
+                    System.err.println("Primary failed (" + ex.getStatusCode() + "). Trying fallback...");
+                    return Mono.delay(java.time.Duration.ofSeconds(2))
+                               .then(call(fallBackModel, messages));
+                })
+                .onErrorResume(ex -> {
+                    System.err.println("Critical API Error: " + ex.getMessage()); 
+                    return Mono.just("⚠️ System is currently under maintenance. Please try again in 15 seconds.");
+                });
     }
 
     private Mono<String> call(String model, List<LLMMessage> messages) {
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/"
+                   + model + ":generateContent?key=" + apikey;
 
-        String url =
-            "https://generativelanguage.googleapis.com/v1/models/"
-            + model
-            + ":generateContent?key=" + apikey;
-
-        // Convert LLMMessage → GeminiRequest structure
+        // 1. Role mapping: Gemini ONLY accepts "user" and "model"
         List<Content> contents = messages.stream()
                 .map(msg -> new Content(
-                        msg.getRole(),
+                        msg.getRole().equalsIgnoreCase("user") ? "user" : "model",
                         List.of(new Part(msg.getContent()))
                 ))
                 .toList();
 
-        GeminiRequest request = new GeminiRequest(contents);
+        // 2. UPDATED TOOL SPEC: google_search is the 2026 standard
+        List<Tool> tools = List.of(new Tool(new GoogleSearch()));
+        
+        GeminiRequest request = new GeminiRequest(contents, tools);
 
         return webClient.post()
                 .uri(url)
-                .bodyValue(request) // 🔥 Auto-serialized by Jackson
+                .bodyValue(request)
                 .retrieve()
                 .bodyToMono(JsonNode.class)
                 .map(this::extractText);
     }
 
-    // ✅ CORRECT + DEFENSIVE PARSER
     private String extractText(JsonNode response) {
         try {
-            JsonNode candidates = response.get("candidates");
-            if (candidates == null || !candidates.isArray() || candidates.isEmpty()) {
-                return "⚠️ No response from AI.";
-            }
-
-            JsonNode content = candidates.get(0).get("content");
-            if (content == null) {
-                return "⚠️ Empty AI response.";
-            }
-
-            JsonNode parts = content.get("parts");
-            if (parts == null || !parts.isArray() || parts.isEmpty()) {
-                return "⚠️ AI returned no text.";
-            }
-
-            JsonNode textNode = parts.get(0).get("text");
-            if (textNode == null) {
-                return "⚠️ AI response missing text.";
-            }
-
-            return textNode.asText();
-
+            // Check for grounding metadata (search results) first
+            JsonNode candidate = response.path("candidates").get(0);
+            return candidate.path("content").path("parts").get(0).path("text").asText();
         } catch (Exception e) {
-            return "⚠️ I couldn’t understand the response properly.";
+            return "⚠️ Response parsing failed. Please check logs.";
         }
     }
-    
-    public record Part(String text) {}
+
+    // --- JSON Records for 2026 Spec ---
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record GeminiRequest(List<Content> contents, List<Tool> tools) {}
+
     public record Content(String role, List<Part> parts) {}
-    public record GeminiRequest(List<Content> contents) {}
+
+    public record Part(String text) {}
+
+    public record Tool(
+            @JsonProperty("googleSearch") 
+            GoogleSearch googleSearch
+        ) {}
+
+        public record GoogleSearch() {}
 }

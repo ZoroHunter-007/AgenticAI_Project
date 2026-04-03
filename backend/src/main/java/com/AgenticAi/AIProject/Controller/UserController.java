@@ -12,7 +12,7 @@ import com.AgenticAi.AIProject.Service.UserService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:8081"}, allowCredentials = "true")
+@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:8081","http://localhost"}, allowCredentials = "true")
 @RequiredArgsConstructor
 public class UserController {
 

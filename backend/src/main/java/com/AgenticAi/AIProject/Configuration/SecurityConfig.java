@@ -1,5 +1,6 @@
 package com.AgenticAi.AIProject.Configuration;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -39,20 +40,6 @@ public class SecurityConfig {
             )
 
             .authorizeHttpRequests(auth -> auth
-
-            	    // Public static
-            	    .requestMatchers(
-            	        "/",
-            	        "/index.html",
-            	        "/style.css",
-            	        "/script.js",
-            	        "/Account.html",
-            	        "/register.js",
-            	        "/login.js",
-            	        "/auth.css",
-            	        "/uploads/**"
-            	    ).permitAll()
-
             	    // OAuth endpoints must be public
             	    .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
 
@@ -73,7 +60,7 @@ public class SecurityConfig {
             	        user.oidcUserService(customOidcUserService)
             	    )
             	    // Change this line ↓
-            	    .defaultSuccessUrl("http://localhost:5173/chat", true)
+            	    .defaultSuccessUrl("http://localhost/chat", true)
             	)
             	.logout(logout -> logout
             	    .logoutUrl("/api/auth/logout")
@@ -105,16 +92,17 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Allow your Vite frontend
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:8081")); 
-        // Allow standard HTTP methods
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
-        // Crucial for sessions/cookies to work
-        configuration.setAllowCredentials(true); 
-
+        configuration.setAllowedOrigins(Arrays.asList(
+            "http://localhost:5173", 
+            "http://localhost:8081",  
+            "http://localhost"       
+        ));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration); // Apply to all API endpoints
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 }

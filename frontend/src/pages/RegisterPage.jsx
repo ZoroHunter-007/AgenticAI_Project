@@ -20,19 +20,19 @@ export default function RegisterPage() {
     setError('');
     try {
         const formData = new FormData();
-        formData.append('name', name);
+        formData.append('displayName', name);
         formData.append('email', email);
         formData.append('password', password);
-        if (profilePic) formData.append('profilePicture', profilePic);
+        if (profilePic) formData.append('profileImage', profilePic);
         await registerApi(formData);
-        setSuccess(true); // ✅ show success
-        setTimeout(() => navigate('/login'), 2000); // ✅ redirect after 2s
-      } catch (e) {
+        setSuccess(true);
+        setTimeout(() => navigate('/login'), 2000);
+    } catch (e) {
         setError(e.message);
-      } finally {
-      setLoading(false);
+    } finally {
+        setLoading(false);
     }
-  };
+};
 
   return (
     <div className="auth-wrapper">
